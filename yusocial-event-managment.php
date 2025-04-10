@@ -18,8 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
-require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
-register_activation_hook(__FILE__, 'thrail_crm_activate');
+// require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
 
 /**
  * The main plugin class
@@ -58,11 +57,11 @@ final class Yusocial_Event_Managment {
 	 * @return void
 	 */
 	public function define_constants() {
-		define( 'THRAIL_CRM_VERSION', self::version );
-		define( 'THRAIL_CRM_FILE', __FILE__ );
-		define( 'THRAIL_CRM_PATH', __DIR__ );
-		define( 'THRAIL_CRM_URL', plugins_url( '', THRAIL_CRM_FILE ) );
-		define( 'THRAIL_CRM_ASSETS', THRAIL_CRM_URL . '/assets' );
+		define( 'YUSOCIAL_EM_VERSION', self::version );
+		define( 'YUSOCIAL_EM_FILE', __FILE__ );
+		define( 'YUSOCIAL_EM_PATH', __DIR__ );
+		define( 'YUSOCIAL_EM_URL', plugins_url( '', YUSOCIAL_EM_FILE ) );
+		define( 'YUSOCIAL_EM_ASSETS', YUSOCIAL_EM_URL . '/assets' );
 	}
 
 	/**
@@ -72,26 +71,26 @@ final class Yusocial_Event_Managment {
 	 */
 	public function init_plugin() {
 
-		new Thrail\Crm\Assets();
-		new Thrail\Crm\Email();
-		new Thrail\Crm\RestAPI();
+		// new Yusocia\YusocialEventManagment\Assets();
+		// new Yusocia\YusocialEventManagment\Email();
+		// // new Yusocia\YusocialEventManagment\RestAPI();
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			new Thrail\Crm\Ajax();
-		}
+		// if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		// 	new Yusocia\YusocialEventManagment\Ajax();
+		// }
 
 		if ( is_admin() ) {
-			new Thrail\Crm\Admin();
+			new Yusocia\YusocialEventManagment\Admin();
 		} else {
-			new Thrail\Crm\Frontend();
+			new Yusocia\YusocialEventManagment\Frontend();
 		}
 
 	}
 }
 
 
-function thrail_crm() {
+function yusocial_event_managment() {
 	return Yusocial_Event_Managment::init();
 }
 
-thrail_crm();
+yusocial_event_managment();

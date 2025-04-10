@@ -6,5 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Yusocia\\YusocialEventManagment\\Classes\\' => array($baseDir . '/classes'),
     'Yusocia\\YusocialEventManagment\\' => array($baseDir . '/includes'),
 );

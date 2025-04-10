@@ -13,11 +13,16 @@ class ComposerStaticInit792ac377c88c5f5ad16e01c7c3558354
     public static $prefixLengthsPsr4 = array (
         'Y' => 
         array (
+            'Yusocia\\YusocialEventManagment\\Classes\\' => 39,
             'Yusocia\\YusocialEventManagment\\' => 31,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Yusocia\\YusocialEventManagment\\Classes\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/classes',
+        ),
         'Yusocia\\YusocialEventManagment\\' => 
         array (
             0 => __DIR__ . '/../..' . '/includes',

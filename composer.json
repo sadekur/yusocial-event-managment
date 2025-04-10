@@ -5,7 +5,8 @@
     "license": "GPLv2",
     "autoload": {
         "psr-4": {
-            "Yusocia\\YusocialEventManagment\\": "includes/"
+            "Yusocia\\YusocialEventManagment\\": "includes/",
+            "Yusocia\\YusocialEventManagment\\Classes\\": "classes/"
         },
         "files": ["includes/functions.php"]
     },
