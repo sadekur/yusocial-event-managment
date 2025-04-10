@@ -83,6 +83,7 @@ final class Yusocial_Event_Managment {
 			new Yusocia\YusocialEventManagment\Admin();
 		} else {
 			new Yusocia\YusocialEventManagment\Frontend();
+			new Yusocia\YusocialEventManagment\Common();
 		}
 
 	}

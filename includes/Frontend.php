@@ -1,8 +1,15 @@
 <?php
 namespace Yusocia\YusocialEventManagment;
 
+/**
+ * Frontend handler class
+ */
 class Frontend {
-    public function __construct() {
-        echo 'Frontend';
+
+    /**
+     * Initialize the class
+     */
+    function __construct() {
+        new Frontend\Shortcode();
     }
 }
