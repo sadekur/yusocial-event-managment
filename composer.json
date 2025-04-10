@@ -1,0 +1,19 @@
+{
+    "name": "yusocial/event-managment",
+    "description": "A plugin for event managment",
+    "type": "wordpress-plugin",
+    "license": "GPLv2",
+    "autoload": {
+        "psr-4": {
+            "Yusocia\\YusocialEventManagment\\": "includes/"
+        },
+        "files": ["includes/functions.php"]
+    },
+    "authors": [
+        {
+            "name": "Sadekur Rahman",
+            "email": "shadekur.rahman60@gmail.com"
+        }
+    ],
+    "require": {}
+}
