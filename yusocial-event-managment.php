@@ -75,9 +75,9 @@ final class Yusocial_Event_Managment {
 		// new Yusocia\YusocialEventManagment\Email();
 		// // new Yusocia\YusocialEventManagment\RestAPI();
 
-		// if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-		// 	new Yusocia\YusocialEventManagment\Ajax();
-		// }
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			new Yusocia\YusocialEventManagment\Ajax();
+		}
 
 		if ( is_admin() ) {
 			new Yusocia\YusocialEventManagment\Admin();

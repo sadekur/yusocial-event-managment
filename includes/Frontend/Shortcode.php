@@ -167,23 +167,23 @@ class Shortcode {
     
         $users = get_users();
         ob_start(); ?>
+    
+        <div id="yem-status-message"></div>
+    
         <table border="1" cellpadding="8">
             <thead>
                 <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
             </thead>
             <tbody>
                 <?php foreach ($users as $user): ?>
-                    <tr>
+                    <tr id="user-row-<?php echo esc_attr($user->ID); ?>">
                         <td><?php echo esc_html($user->display_name); ?></td>
                         <td><?php echo esc_html($user->user_email); ?></td>
                         <td>
                             <?php if ($user->ID !== get_current_user_id()): ?>
-                                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('Are you sure?');">
-                                    <input type="hidden" name="action" value="yem_delete_user">
-                                    <input type="hidden" name="user_id" value="<?php echo esc_attr($user->ID); ?>">
-                                    <?php wp_nonce_field('yem_delete_user_' . $user->ID); ?>
-                                    <input type="submit" value="Delete">
-                                </form>
+                                <button class="yem-delete-user-btn" data-user-id="<?php echo esc_attr($user->ID); ?>">
+                                    Delete
+                                </button>
                             <?php else: ?>
                                 (You)
                             <?php endif; ?>
@@ -191,10 +191,11 @@ class Shortcode {
                     </tr>
                 <?php endforeach; ?>
             </tbody>
-        </table>
+        </table>    
         <?php
         return ob_get_clean();
     }
+    
     
     public function yem_handle_user_deletion() {
         if (!current_user_can('administrator')) {
