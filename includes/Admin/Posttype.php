@@ -57,6 +57,11 @@ class Posttype {
     public function yem_render_event_meta_box($post) {
         $datetime = get_post_meta($post->ID, 'event_datetime', true);
         $location = get_post_meta($post->ID, 'event_location', true);
+        $added_by = get_post_meta($post->ID, 'event_added_by', true);
+    
+        // Get all users
+        $users = get_users(); // No role filter, fetches everyone
+    
         wp_nonce_field('yem_save_event_meta', 'yem_event_nonce');
         ?>
         <p>
@@ -67,8 +72,20 @@ class Posttype {
             <label for="event_location"><strong>Location:</strong></label><br>
             <input type="text" id="event_location" name="event_location" value="<?php echo esc_attr($location); ?>" style="width:100%;" />
         </p>
+        <p>
+            <label for="event_added_by"><strong>Added By (User):</strong></label><br>
+            <select id="event_added_by" name="event_added_by" style="width:100%;">
+                <option value=""><?php _e('-- Select User --', 'yusocial-event-management'); ?></option>
+                <?php foreach ($users as $user) : ?>
+                    <option value="<?php echo esc_attr($user->ID); ?>" <?php selected($added_by, $user->ID); ?>>
+                        <?php echo esc_html($user->display_name . ' (' . $user->user_email . ')'); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </p>
         <?php
     }
+    
 
     public function yem_save_event_meta($post_id) {
         // Security checks
@@ -88,6 +105,9 @@ class Posttype {
         }
         if (isset($_POST['event_location'])) {
             update_post_meta($post_id, 'event_location', sanitize_text_field($_POST['event_location']));
+        }
+        if (isset($_POST['event_added_by'])) {
+            update_post_meta($post_id, 'event_added_by', sanitize_text_field($_POST['event_added_by']));
         }
     }
 }

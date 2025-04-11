@@ -86,34 +86,54 @@ class Shortcode {
 
 
     public function yem_render_public_profile() {
-        // Utility::pri($_GET['user_id']);
-        $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+        ob_start();
     
-        if (!$user_id) {
-            return '<p>No user specified.</p>';
+        // Fetch all published events
+        $events = get_posts([
+            'post_type'      => 'event',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ]);
+    
+        if (empty($events)) {
+            return '<p>No events found.</p>';
         }
     
-        $user = get_userdata($user_id);
-        if (!$user) {
-            return '<p>User not found.</p>';
+        echo '<div class="yem-public-events" style="display: flex; flex-wrap: wrap; gap: 20px;">';
+    
+        foreach ($events as $event) {
+            $datetime   = get_post_meta($event->ID, 'event_datetime', true);
+            $location   = get_post_meta($event->ID, 'event_location', true);
+            $added_by   = get_post_meta($event->ID, 'event_added_by', true);
+            $thumbnail  = get_the_post_thumbnail_url($event->ID, 'medium');
+    
+            // Get user info
+            $user       = $added_by ? get_userdata($added_by) : null;
+            $user_name  = $user ? $user->display_name : 'Unknown';
+            $user_email = $user ? $user->user_email : 'N/A';
+    
+            ?>
+            <div class="event-card" style="border: 1px solid #ccc; padding: 15px; width: 300px;">
+                <?php if ($thumbnail): ?>
+                    <img src="<?php echo esc_url($thumbnail); ?>" alt="Event image" style="width: 100%; height: auto;">
+                <?php endif; ?>
+                <h3><?php echo esc_html($event->post_title); ?></h3>
+                <p><strong>Date & Time:</strong> <?php echo esc_html($datetime); ?></p>
+                <p><strong>Location:</strong> <?php echo esc_html($location); ?></p>
+                <p><strong>Added by:</strong> <?php echo esc_html($user_name); ?> (<?php echo esc_html($user_email); ?>)</p>
+                <p><?php echo wp_trim_words($event->post_content, 20); ?></p>
+                <a href="<?php echo esc_url(get_permalink($event->ID)); ?>" class="button">View Details</a>
+            </div>
+            <?php
         }
     
-        $age = get_user_meta($user->ID, 'yem_age', true);
-        $bio = get_user_meta($user->ID, 'yem_bio', true);
-        $profile_picture = get_user_meta($user->ID, 'yem_profile_picture', true);
+        echo '</div>';
     
-        ob_start(); ?>
-        <div class="yem-public-profile">
-            <?php if ($profile_picture): ?>
-                <img src="<?php echo esc_url($profile_picture); ?>" width="120" />
-            <?php endif; ?>
-            <h2><?php echo esc_html($user->display_name); ?></h2>
-            <p><strong>Age:</strong> <?php echo esc_html($age); ?></p>
-            <p><strong>Bio:</strong><br><?php echo nl2br(esc_html($bio)); ?></p>
-        </div>
-        <?php
         return ob_get_clean();
-    }
+    }    
+    
     
     public function yem_render_user_list() {
         if (!current_user_can('administrator')) {
@@ -157,8 +177,6 @@ class Shortcode {
         }
     
         $user_id = get_current_user_id();
-    
-        // Example: Assuming 'event' is a custom post type
         $posted_events = get_posts([
             'post_type' => 'event',
             'author' => $user_id,
@@ -166,8 +184,7 @@ class Shortcode {
             'fields' => 'ids',
         ]);
         
-        // You must have a way to store applied events (e.g., user meta or a custom table)
-        $applied_events = get_user_meta($user_id, 'yem_applied_events', true); // Assume it's an array
+        $applied_events = get_user_meta($user_id, 'yem_applied_events', true);
         if (!is_array($applied_events)) $applied_events = [];
     
         ob_start(); ?>
