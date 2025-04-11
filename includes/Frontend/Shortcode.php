@@ -1,18 +1,23 @@
 <?php
 namespace Yusocia\YusocialEventManagment\Frontend;
+use Yusocia\YusocialEventManagment\Classes\Helper\Utility; 
 
 class Shortcode {
     public function __construct() {
-        add_shortcode('yem_user_registration', [$this, 'render_registration_form']);
-        add_action('init', [$this, 'yem_handle_registration']);
-        add_shortcode('yem_user_login', [$this, 'yem_render_login_form']);
-        add_shortcode('yem_user_profile', [$this, 'yem_render_profile_form']);
-        add_action('init', [$this, 'yem_handle_profile_update']);
+        add_shortcode( 'yem_user_registration', [$this, 'yem_render_registration_form'] );
+        add_action( 'init', [$this, 'yem_handle_registration'] );
+        add_shortcode( 'yem_user_login', [$this, 'yem_render_login_form'] );
+        add_shortcode( 'yem_user_profile', [$this, 'yem_render_profile_form'] );
+        add_action( 'init', [$this, 'yem_handle_profile_update'] );
+        add_shortcode( 'yem_public_profile', [$this, 'yem_render_public_profile'] );
+        add_shortcode('yem_admin_user_list', [$this, 'yem_render_user_list']);
+        add_action('admin_post_yem_delete_user', [$this, 'yem_handle_user_deletion']);
+
     }
 
-    public function render_registration_form() {
+    public function yem_render_registration_form() {
         ob_start();
-        if (is_user_logged_in()) {
+        if ( is_user_logged_in() ) {
             echo '<p>You are already logged in.</p>';
         } else {
         ?>
@@ -27,14 +32,14 @@ class Shortcode {
         return ob_get_clean();
     }
     public function yem_handle_registration() {
-        if (isset($_POST['yem_register_submit'])) {
-            $username = sanitize_user($_POST['yem_username']);
-            $email = sanitize_email($_POST['yem_email']);
+        if ( isset( $_POST['yem_register_submit'] ) ) {
+            $username = sanitize_user( $_POST['yem_username'] );
+            $email = sanitize_email( $_POST['yem_email'] );
             $password = $_POST['yem_password'];
 
             $errors = new \WP_Error();
 
-            if (username_exists($username)) {
+            if ( username_exists( $username ) ) {
                 $errors->add('username_exists', 'Username already exists');
             }
             if (!is_email($email) || email_exists($email)) {
@@ -57,7 +62,7 @@ class Shortcode {
 
     public function yem_render_login_form() {
         ob_start();
-        if (is_user_logged_in()) {
+        if ( is_user_logged_in() ) {
             echo '<p>You are already logged in.</p>';
         } else {
             $args = [
@@ -124,4 +129,88 @@ class Shortcode {
         wp_redirect(site_url('/profile'));
         exit;
     }
+
+    public function yem_render_public_profile() {
+        // Utility::pri($_GET['user_id']);
+        $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+    
+        if (!$user_id) {
+            return '<p>No user specified.</p>';
+        }
+    
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return '<p>User not found.</p>';
+        }
+    
+        $age = get_user_meta($user->ID, 'yem_age', true);
+        $bio = get_user_meta($user->ID, 'yem_bio', true);
+        $profile_picture = get_user_meta($user->ID, 'yem_profile_picture', true);
+    
+        ob_start(); ?>
+        <div class="yem-public-profile">
+            <?php if ($profile_picture): ?>
+                <img src="<?php echo esc_url($profile_picture); ?>" width="120" />
+            <?php endif; ?>
+            <h2><?php echo esc_html($user->display_name); ?></h2>
+            <p><strong>Age:</strong> <?php echo esc_html($age); ?></p>
+            <p><strong>Bio:</strong><br><?php echo nl2br(esc_html($bio)); ?></p>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+    
+    public function yem_render_user_list() {
+        if (!current_user_can('administrator')) {
+            return '<p>You are not allowed to view this page.</p>';
+        }
+    
+        $users = get_users();
+        ob_start(); ?>
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                <?php foreach ($users as $user): ?>
+                    <tr>
+                        <td><?php echo esc_html($user->display_name); ?></td>
+                        <td><?php echo esc_html($user->user_email); ?></td>
+                        <td>
+                            <?php if ($user->ID !== get_current_user_id()): ?>
+                                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('Are you sure?');">
+                                    <input type="hidden" name="action" value="yem_delete_user">
+                                    <input type="hidden" name="user_id" value="<?php echo esc_attr($user->ID); ?>">
+                                    <?php wp_nonce_field('yem_delete_user_' . $user->ID); ?>
+                                    <input type="submit" value="Delete">
+                                </form>
+                            <?php else: ?>
+                                (You)
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php
+        return ob_get_clean();
+    }
+    
+    public function yem_handle_user_deletion() {
+        if (!current_user_can('administrator')) {
+            wp_die('Unauthorized user');
+        }
+    
+        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+        if (!$user_id || !wp_verify_nonce($_POST['_wpnonce'], 'yem_delete_user_' . $user_id)) {
+            wp_die('Invalid request');
+        }
+    
+        require_once(ABSPATH . 'wp-admin/includes/user.php');
+        wp_delete_user($user_id);
+    
+        wp_redirect(wp_get_referer());
+        exit;
+    }
+    
 }

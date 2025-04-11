@@ -71,7 +71,7 @@ final class Yusocial_Event_Managment {
 	 */
 	public function init_plugin() {
 
-		// new Yusocia\YusocialEventManagment\Assets();
+		new Yusocia\YusocialEventManagment\Assets();
 		// new Yusocia\YusocialEventManagment\Email();
 		// // new Yusocia\YusocialEventManagment\RestAPI();
 
