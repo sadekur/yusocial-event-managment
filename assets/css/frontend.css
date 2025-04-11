@@ -24,18 +24,18 @@
 
 .yem-event-title {
     font-size: 20px;
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .yem-event-info {
     font-size: 14px;
     color: #444;
-    margin: 5px 0;
+    margin-bottom: 2px !important;
 }
 
 .yem-event-description {
     font-size: 14px;
-    margin: 10px 0;
+    margin: 5px 0;
     color: #666;
 }
 
