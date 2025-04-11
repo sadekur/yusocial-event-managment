@@ -5,13 +5,11 @@ use Yusocia\YusocialEventManagment\Classes\Helper\Utility;
 class Shortcode {
     public function __construct() {
         add_shortcode( 'yem_user_registration', [$this, 'yem_render_registration_form'] );
-        add_action( 'init', [$this, 'yem_handle_registration'] );
         add_shortcode( 'yem_user_login', [$this, 'yem_render_login_form'] );
         add_shortcode( 'yem_user_profile', [$this, 'yem_render_profile_form'] );
-        add_action( 'init', [$this, 'yem_handle_profile_update'] );
         add_shortcode( 'yem_public_profile', [$this, 'yem_render_public_profile'] );
-        add_shortcode('yem_admin_user_list', [$this, 'yem_render_user_list']);
-        add_action('admin_post_yem_delete_user', [$this, 'yem_handle_user_deletion']);
+        add_shortcode( 'yem_admin_user_list', [$this, 'yem_render_user_list'] );
+        add_shortcode( 'yem_user_dashboard', [$this, 'yem_render_user_dashboard'] );
 
     }
 
@@ -31,52 +29,32 @@ class Shortcode {
         }
         return ob_get_clean();
     }
-    public function yem_handle_registration() {
-        if ( isset( $_POST['yem_register_submit'] ) ) {
-            $username = sanitize_user( $_POST['yem_username'] );
-            $email = sanitize_email( $_POST['yem_email'] );
-            $password = $_POST['yem_password'];
-
-            $errors = new \WP_Error();
-
-            if ( username_exists( $username ) ) {
-                $errors->add('username_exists', 'Username already exists');
-            }
-            if (!is_email($email) || email_exists($email)) {
-                $errors->add('email_invalid', 'Invalid or existing email');
-            }
-
-            if (empty($errors->errors)) {
-                $user_id = wp_create_user($username, $password, $email);
-                wp_set_current_user($user_id);
-                wp_set_auth_cookie($user_id);
-                wp_redirect(site_url('/profile'));
-                exit;
-            } else {
-                foreach ($errors->get_error_messages() as $error) {
-                    echo '<p style="color:red;">' . esc_html($error) . '</p>';
-                }
-            }
-        }
-    }
 
     public function yem_render_login_form() {
         ob_start();
+    
         if ( is_user_logged_in() ) {
             echo '<p>You are already logged in.</p>';
         } else {
+            $current_user = wp_get_current_user();
+            $is_admin = in_array( 'administrator', (array) $current_user->roles, true );
+    
+            $redirect_url = $is_admin ? admin_url() : yem_find_dashboard_page_url();
+    
             $args = [
-                'redirect' => site_url('/profile'),
+                'redirect' => $redirect_url,
                 'form_id' => 'yem_loginform',
                 'label_username' => __('Username'),
                 'label_password' => __('Password'),
                 'label_log_in' => __('Login'),
                 'remember' => true,
             ];
-            wp_login_form($args);
+    
+            wp_login_form( $args );
         }
+    
         return ob_get_clean();
-    }
+    }        
 
     public function yem_render_profile_form() {
         if (!is_user_logged_in()) {
@@ -105,30 +83,7 @@ class Shortcode {
         return ob_get_clean();
     }
 
-    public function yem_handle_profile_update() {
-        if (!is_user_logged_in() || !isset($_POST['yem_profile_submit'])) return;
 
-        $user_id = get_current_user_id();
-
-        wp_update_user([
-            'ID' => $user_id,
-            'display_name' => sanitize_text_field($_POST['yem_name']),
-        ]);
-
-        update_user_meta($user_id, 'yem_age', sanitize_text_field($_POST['yem_age']));
-        update_user_meta($user_id, 'yem_bio', sanitize_textarea_field($_POST['yem_bio']));
-
-        if (!empty($_FILES['yem_profile_picture']['name'])) {
-            require_once(ABSPATH . 'wp-admin/includes/file.php');
-            $upload = wp_handle_upload($_FILES['yem_profile_picture'], ['test_form' => false]);
-            if (!isset($upload['error'])) {
-                update_user_meta($user_id, 'yem_profile_picture', esc_url_raw($upload['url']));
-            }
-        }
-
-        wp_redirect(site_url('/profile'));
-        exit;
-    }
 
     public function yem_render_public_profile() {
         // Utility::pri($_GET['user_id']);
@@ -196,22 +151,66 @@ class Shortcode {
         return ob_get_clean();
     }
     
-    
-    public function yem_handle_user_deletion() {
-        if (!current_user_can('administrator')) {
-            wp_die('Unauthorized user');
+    public function yem_render_user_dashboard() {
+        if (!is_user_logged_in()) {
+            return '<p>You must be logged in to view your dashboard.</p>';
         }
     
-        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-        if (!$user_id || !wp_verify_nonce($_POST['_wpnonce'], 'yem_delete_user_' . $user_id)) {
-            wp_die('Invalid request');
-        }
+        $user_id = get_current_user_id();
     
-        require_once(ABSPATH . 'wp-admin/includes/user.php');
-        wp_delete_user($user_id);
+        // Example: Assuming 'event' is a custom post type
+        $posted_events = get_posts([
+            'post_type' => 'event',
+            'author' => $user_id,
+            'post_status' => 'publish',
+            'fields' => 'ids',
+        ]);
+        
+        // You must have a way to store applied events (e.g., user meta or a custom table)
+        $applied_events = get_user_meta($user_id, 'yem_applied_events', true); // Assume it's an array
+        if (!is_array($applied_events)) $applied_events = [];
     
-        wp_redirect(wp_get_referer());
-        exit;
+        ob_start(); ?>
+    
+        <div class="yem-dashboard">
+            <h2>Welcome to Your Dashboard</h2>
+    
+            <div class="yem-stats">
+                <p><strong>Events You Posted:</strong> <?php echo count($posted_events); ?></p>
+                <p><strong>Events You Applied For:</strong> <?php echo count($applied_events); ?></p>
+            </div>
+    
+            <h3>Available Events</h3>
+    
+            <div class="yem-event-cards" style="display: flex; flex-wrap: wrap; gap: 20px;">
+                <?php
+                $events = get_posts([
+                    'post_type' => 'event',
+                    'post_status' => 'publish',
+                    'post__not_in' => $posted_events,
+                    'posts_per_page' => 10,
+                ]);
+    
+                foreach ($events as $event):
+                    $image = get_the_post_thumbnail_url($event->ID, 'medium');
+                    $datetime = get_post_meta($event->ID, 'event_datetime', true);
+                    $location = get_post_meta($event->ID, 'event_location', true);
+                    ?>
+                    <div class="event-card" style="border: 1px solid #ccc; padding: 15px; width: 300px;">
+                        <?php if ($image): ?>
+                            <img src="<?php echo esc_url($image); ?>" alt="" style="width:100%; height:auto;" />
+                        <?php endif; ?>
+                        <h4><?php echo esc_html($event->post_title); ?></h4>
+                        <p><strong>Date/Time:</strong> <?php echo esc_html($datetime); ?></p>
+                        <p><?php echo wp_trim_words($event->post_content, 20); ?></p>
+                        <p><strong>Location:</strong> <?php echo esc_html($location); ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    
+        <?php
+        return ob_get_clean();
     }
     
 }
