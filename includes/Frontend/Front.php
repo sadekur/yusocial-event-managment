@@ -59,4 +59,5 @@ class Front {
         wp_redirect(site_url('/profile'));
         exit;
     }
+    
 }
