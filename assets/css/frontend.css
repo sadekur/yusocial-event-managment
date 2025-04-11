@@ -1,0 +1,55 @@
+.yem-public-events {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.yem-event-card {
+    background-color: #f9f9f9;
+    padding: 20px;
+    width: 300px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.yem-event-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.yem-event-title {
+    font-size: 20px;
+    margin: 10px 0;
+}
+
+.yem-event-info {
+    font-size: 14px;
+    color: #444;
+    margin: 5px 0;
+}
+
+.yem-event-description {
+    font-size: 14px;
+    margin: 10px 0;
+    color: #666;
+}
+
+.yem-event-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
+
+.yem-event-button:hover {
+    background-color: #005f8d;
+}

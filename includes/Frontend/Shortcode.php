@@ -101,7 +101,7 @@ class Shortcode {
             return '<p>No events found.</p>';
         }
     
-        echo '<div class="yem-public-events" style="display: flex; flex-wrap: wrap; gap: 20px;">';
+        echo '<div class="yem-public-events">';
     
         foreach ($events as $event) {
             $datetime   = get_post_meta($event->ID, 'event_datetime', true);
@@ -115,16 +115,15 @@ class Shortcode {
             $user_email = $user ? $user->user_email : 'N/A';
     
             ?>
-            <div class="event-card" style="border: 1px solid #ccc; padding: 15px; width: 300px;">
+            <div class="yem-event-card">
                 <?php if ($thumbnail): ?>
-                    <img src="<?php echo esc_url($thumbnail); ?>" alt="Event image" style="width: 100%; height: auto;">
+                    <img src="<?php echo esc_url($thumbnail); ?>" alt="Event image" class="yem-event-image">
                 <?php endif; ?>
-                <h3><?php echo esc_html($event->post_title); ?></h3>
-                <p><strong>Date & Time:</strong> <?php echo esc_html($datetime); ?></p>
-                <p><strong>Location:</strong> <?php echo esc_html($location); ?></p>
-                <p><strong>Added by:</strong> <?php echo esc_html($user_name); ?> (<?php echo esc_html($user_email); ?>)</p>
-                <p><?php echo wp_trim_words($event->post_content, 20); ?></p>
-                <a href="<?php echo esc_url(get_permalink($event->ID)); ?>" class="button">View Details</a>
+                <h3 class="yem-event-title">Event Name: <?php echo esc_html($event->post_title); ?></h3>
+                <p class="yem-event-info"><strong>Date and Time of the Event:</strong> <?php echo esc_html($datetime); ?></p>
+                <p class="yem-event-info"><strong>Location:</strong> <?php echo esc_html($location); ?></p>
+                <p class="yem-event-description"><?php echo wp_trim_words($event->post_content, 20); ?></p>
+                <a href="<?php echo esc_url(get_permalink($event->ID)); ?>" class="yem-event-button">Apply for Event</a>
             </div>
             <?php
         }
@@ -132,8 +131,7 @@ class Shortcode {
         echo '</div>';
     
         return ob_get_clean();
-    }    
-    
+    }
     
     public function yem_render_user_list() {
         if (!current_user_can('administrator')) {
@@ -177,13 +175,16 @@ class Shortcode {
         }
     
         $user_id = get_current_user_id();
+    
+        // Events created by this user
         $posted_events = get_posts([
-            'post_type' => 'event',
-            'author' => $user_id,
+            'post_type'   => 'event',
+            'author'      => $user_id,
             'post_status' => 'publish',
-            'fields' => 'ids',
+            'fields'      => 'ids',
         ]);
-        
+    
+        // Events this user applied for
         $applied_events = get_user_meta($user_id, 'yem_applied_events', true);
         if (!is_array($applied_events)) $applied_events = [];
     
@@ -202,16 +203,35 @@ class Shortcode {
             <div class="yem-event-cards" style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <?php
                 $events = get_posts([
-                    'post_type' => 'event',
-                    'post_status' => 'publish',
-                    'post__not_in' => $posted_events,
+                    'post_type'      => 'event',
+                    'post_status'    => 'publish',
+                    'post__not_in'   => $posted_events,
                     'posts_per_page' => 10,
                 ]);
     
                 foreach ($events as $event):
-                    $image = get_the_post_thumbnail_url($event->ID, 'medium');
+                    $image    = get_the_post_thumbnail_url($event->ID, 'medium');
                     $datetime = get_post_meta($event->ID, 'event_datetime', true);
                     $location = get_post_meta($event->ID, 'event_location', true);
+                    $author_id = get_post_meta($event->ID, 'event_added_by', true);
+    
+                    if ($author_id) {
+                        $author_data = get_userdata($author_id);
+                        $author_name = $author_data ? $author_data->display_name : __('Unknown');
+                    
+                        // Count how many events this user has added (based on meta)
+                        $events = get_posts([
+                            'post_type'      => 'event',
+                            'post_status'    => 'publish',
+                            'posts_per_page' => 10,
+                            'meta_key'       => 'event_added_by',
+                            'meta_value'     => $user_id,
+                        ]);
+                        
+                    } else {
+                        $author_name = __('Unknown');
+                        $author_event_count = 0;
+                    }
                     ?>
                     <div class="event-card" style="border: 1px solid #ccc; padding: 15px; width: 300px;">
                         <?php if ($image): ?>
@@ -221,6 +241,7 @@ class Shortcode {
                         <p><strong>Date/Time:</strong> <?php echo esc_html($datetime); ?></p>
                         <p><?php echo wp_trim_words($event->post_content, 20); ?></p>
                         <p><strong>Location:</strong> <?php echo esc_html($location); ?></p>
+                        <!-- <p><strong>Added by:</strong> <?php echo esc_html($author_name); ?> (<?php echo $author_event_count; ?> total events)</p> -->
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -229,5 +250,4 @@ class Shortcode {
         <?php
         return ob_get_clean();
     }
-    
 }
