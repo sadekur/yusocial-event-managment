@@ -122,6 +122,7 @@ class Shortcode {
                 <h3 class="yem-event-title">Event Name: <?php echo esc_html($event->post_title); ?></h3>
                 <p class="yem-event-info"><strong>Date and Time of the Event:</strong> <?php echo esc_html($datetime); ?></p>
                 <p class="yem-event-info"><strong>Location:</strong> <?php echo esc_html($location); ?></p>
+                <p class="yem-event-info"><strong>Added by:</strong> <?php echo esc_html($user_name); ?> (<?php echo esc_html($user_email); ?>)</p>
                 <p class="yem-event-description"><?php echo wp_trim_words($event->post_content, 20); ?></p>
                 <a href="<?php echo esc_url(get_permalink($event->ID)); ?>" class="yem-event-button">Apply for Event</a>
             </div>
