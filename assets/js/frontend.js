@@ -1,4 +1,31 @@
 jQuery(document).ready(function($) {
+
+    // Registration
+    $('#yem-registration-form').on('submit', function(e) {
+        e.preventDefault();
+        $('#yem-registration-errors').html('');
+
+        $.ajax({
+            type: 'POST',
+            url: YUSOCIAL_EM.ajaxurl,
+            data: {
+                action: 'yem_ajax_register',
+                yem_username: $('input[name="yem_username"]').val(),
+                yem_email: $('input[name="yem_email"]').val(),
+                yem_password: $('input[name="yem_password"]').val(),
+                nonce: YUSOCIAL_EM.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.location.href = response.data.redirect;
+                } else {
+                    $('#yem-registration-errors').html(response.data);
+                }
+            }
+        });
+    });
+
+    // Delete user
     $('.yem-delete-user-btn').on('click', function(e) {
         e.preventDefault();
 

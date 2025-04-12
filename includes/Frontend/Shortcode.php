@@ -18,17 +18,18 @@ class Shortcode {
         if ( is_user_logged_in() ) {
             echo '<p>You are already logged in.</p>';
         } else {
-        ?>
-        <form method="post">
-            <p><input type="text" name="yem_username" placeholder="Username" required></p>
-            <p><input type="email" name="yem_email" placeholder="Email" required></p>
-            <p><input type="password" name="yem_password" placeholder="Password" required></p>
-            <p><input type="submit" name="yem_register_submit" value="Register"></p>
-        </form>
-        <?php
+            ?>
+            <form id="yem-registration-form" method="post">
+                <p><input type="text" name="yem_username" placeholder="Username" required></p>
+                <p><input type="email" name="yem_email" placeholder="Email" required></p>
+                <p><input type="password" name="yem_password" placeholder="Password" required></p>
+                <div id="yem-registration-errors" style="color: red;"></div>
+                <p><input type="submit" value="Register"></p>
+            </form>
+            <?php
         }
         return ob_get_clean();
-    }
+    }    
 
     public function yem_render_login_form() {
         ob_start();
